@@ -1,8 +1,10 @@
 import django
-django.setup()
 import os
 import csv
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "poke_project.settings")
+django.setup()
+
 from pokemon.models import Pokemon
 
 with open('pokemon.csv') as f:
