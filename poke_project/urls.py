@@ -18,6 +18,8 @@ from django.urls import path,include,re_path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path(r'api/v1/', include('djoser.urls')),
-    path(r'api/v1/', include('djoser.urls.authtoken'))
+#    path(r'api/v1/', include('djoser.urls')),
+#    path(r'api/v1/', include('djoser.urls.authtoken')),
+    path(r'auth/', include('djoser.urls')),
+    path(r'auth/', include('djoser.urls.jwt')),
 ]
