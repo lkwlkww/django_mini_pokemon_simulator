@@ -17,8 +17,8 @@ from django.contrib import admin
 from django.urls import path,include,re_path
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
 #    path(r'api/v1/', include('djoser.urls')),
 #    path(r'api/v1/', include('djoser.urls.authtoken')),
-    path(r'pokemon/', include('pokemon.urls')),
+    path(r'auth/', include('djoser.urls')),
+    path(r'auth/', include('djoser.urls.jwt')),
 ]
