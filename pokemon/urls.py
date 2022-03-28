@@ -16,13 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include,re_path
 
-from .views import PokemonView
+from .views import AllPokemonView
 
 app_name = 'pokemon'
 
 urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
-    path(r'pokemon', PokemonView.as_view()),
-    path('pokemon/<int:pk>', PokemonView.as_view()),
+    path('allpokemon/', AllPokemonView.as_view()),
+    path('pokemon/<int:pk>', AllPokemonView.as_view()),
 ]
