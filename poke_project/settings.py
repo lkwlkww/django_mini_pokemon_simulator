@@ -61,6 +61,8 @@ DJOSER = {
     'USER_ID_FIELD': 'username',
 }
 
+AUTH_USER_MODEL = 'pokemon.user'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

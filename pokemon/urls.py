@@ -23,5 +23,6 @@ app_name = 'pokemon'
 urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.jwt')),
-    path('pokemon', PokemonView.as_view()),
+    path(r'pokemon', PokemonView.as_view()),
+    path('pokemon/<int:pk>', PokemonView.as_view()),
 ]
