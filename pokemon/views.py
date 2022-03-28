@@ -1,14 +1,15 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import AllowAny
 
 from django.shortcuts import get_object_or_404
 
-from rest_framework.authtoken.models import Token
+from django.db import models
 
 from .models import Pokemon, CapturedPokemon
-from .serializers import PokemonSerializer, CapturedPokemonSerializer
+from .serializers import PokemonSerializer, CapturedPokemonSerializer, WildPokemonSerializer
+
+import random
 
 '''
 This view lists all the existing Pokemon.
@@ -38,17 +39,33 @@ class AllPokemonView(APIView):
 '''
 This view lists all the captured pokemon of a user.
 '''
-
-
 class UserPokemonView(APIView):
-
-    permission_classes = (IsAuthenticated,)
-
     def get(self, request):
         # pokemon = CapturedPokemon.objects.filter(user=request.user)
         pokemon = CapturedPokemon.objects.all()
-        # token = Token.objects.get_or_create(user=request.user)
-        print('yessssssssssssssssss')
-        # print("token", token)
         serializer = CapturedPokemonSerializer(pokemon, many=True)
         return Response({'Captured Pokemon': serializer.data})
+
+'''
+This view is for adding a captured pokemon to a user's
+repertoire of captured pokemon.
+'''
+class AddPokemonView(APIView):
+    # permission_classes = (AllowAny,)
+    """
+    Get a randomly generated pokemon that has not been captured yet.
+    """
+    def get(self, request):
+        wild_pokemon = Pokemon.objects.filter(captured=False)
+
+        # get a random pokemon
+        discovered_pokemon = random.choice(wild_pokemon)
+
+        # set the discovered pokemon's level to a randomly generated int between 1 and 100
+        discovered_pokemon.level = random.randint(1, 100)
+
+        serializer = WildPokemonSerializer(discovered_pokemon)
+        return Response({"Discovered wild pokemon": serializer.data})
+
+    def post(self, request):
+        pass

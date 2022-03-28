@@ -20,6 +20,12 @@ class PokemonSerializer(serializers.Serializer):
         return instance
 
 """
+Serializes a wild pokemon, with a randomly generated level.
+"""
+class WildPokemonSerializer(PokemonSerializer):
+    level = serializers.IntegerField()
+
+"""
 Serializes the level and user of the captured pokemon, in addition to the serialized
 fields in PokemonSerializer.
 """
