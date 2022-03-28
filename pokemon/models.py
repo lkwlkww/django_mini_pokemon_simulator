@@ -12,6 +12,9 @@ class Pokemon(models.Model):
 
     captured = models.BooleanField(default=False)
 
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, default=None, on_delete=models.SET_NULL, null=True)
+    # user = models.ForeignKey(settings.AUTH_USER_MODEL, default=None, null=True, on_delete=models.SET_NULL)
+
     def __str__(self):
         return self.name
 
@@ -20,7 +23,7 @@ class Pokemon(models.Model):
 
 class CapturedPokemon(Pokemon):
     level = models.IntegerField()
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    # user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
 
     def __str__(self):
         return self.name

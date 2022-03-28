@@ -69,3 +69,13 @@ class AddPokemonView(APIView):
 
     def post(self, request):
         pass
+
+'''
+This view is for listing all the pokemon that a user does not own.
+'''
+class UnownedPokemonView(APIView):
+    def get(self, request):
+        unowned_pokemon = Pokemon.objects.filter(user!=request.user)
+
+        serializer = PokemonSerializer(unowned_pokemon)
+        return Response({"Unowned pokemon": serializer.data})
