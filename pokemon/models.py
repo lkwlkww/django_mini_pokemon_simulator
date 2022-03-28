@@ -25,7 +25,7 @@ class CapturedPokemon(Pokemon):
 
 class User(AbstractUser):
     # List of pokemon captured by a user.
-    captured_pokemon = []
+    # captured_pokemon = models.OneToManyField('CapturedPokemon')
 
     def __str__(self):
         return self.username
