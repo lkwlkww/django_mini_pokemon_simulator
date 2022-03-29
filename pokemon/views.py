@@ -51,7 +51,7 @@ class UserPokemonView(APIView):
     # permission_classes = (AllowAny,)
     def get(self, request):
         # pokemon = CapturedPokemon.objects.filter(user=request.user)
-        pokemon = Pokemon.objects.filter(captured=True)
+        pokemon = Pokemon.objects.filter(captured=True).filter(user=request.user)
         serializer = CapturedPokemonSerializer(pokemon, many=True)
         return Response({'Captured Pokemon': serializer.data})
 
@@ -106,9 +106,9 @@ This view is for listing all the pokemon that a user does not own.
 '''
 class UnownedPokemonView(APIView):
     def get(self, request):
-        unowned_pokemon = Pokemon.objects.filter(user!=request.user)
+        unowned_pokemon = Pokemon.objects.filter(~models.Q(user = request.user))
 
-        serializer = PokemonSerializer(unowned_pokemon)
+        serializer = PokemonSerializer(unowned_pokemon, many=True)
         return Response({"Unowned pokemon": serializer.data})
 
 """
