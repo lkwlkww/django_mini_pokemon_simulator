@@ -13,7 +13,7 @@ class Pokemon(models.Model):
     type = models.CharField(max_length=100)
 
     captured = models.BooleanField(default=False)
-
+    level = models.IntegerField(default=None, null=True)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, default=None, on_delete=models.SET_NULL, null=True)
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, default=None, null=True, on_delete=models.SET_NULL)
 
@@ -23,6 +23,11 @@ class Pokemon(models.Model):
     def __unicode__(self):
         return self.name
 
+class User(AbstractUser):
+    def __str__(self):
+        return self.username
+
+"""
     def create_captured_pokemon(self):
         # Updating captured field to reflect its capture.
         captured = True
@@ -35,8 +40,9 @@ class Pokemon(models.Model):
             if field_name != 'level':
                 if field_name in map(lambda x: x.name, self._meta.get_fields()):
                     setattr(captured_pokemon, field_name, getattr(self, field_name))
+"""
 
-
+"""
 class CapturedPokemon(Pokemon):
     level = models.IntegerField()
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
@@ -50,3 +56,4 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+"""
