@@ -2,20 +2,24 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 from django.db import models
+
+from django.http import HttpResponseRedirect, HttpResponse
+
+from django.views.generic import ListView
+from django.views.generic.edit import FormView
 
 from .models import Pokemon, CapturedPokemon
 from .serializers import PokemonSerializer, CapturedPokemonSerializer, WildPokemonSerializer
 
 import random
+import json
 
 '''
 This view lists all the existing Pokemon.
 '''
-
-
 class AllPokemonView(APIView):
     permission_classes = (AllowAny,)
 
@@ -36,6 +40,7 @@ class AllPokemonView(APIView):
     """
 
 
+
 '''
 This view lists all the captured pokemon of a user.
 '''
@@ -51,10 +56,10 @@ This view is for adding a captured pokemon to a user's
 repertoire of captured pokemon.
 '''
 class AddPokemonView(APIView):
-    # permission_classes = (AllowAny,)
-    """
+    permission_classes = (AllowAny,)
+    '''
     Get a randomly generated pokemon that has not been captured yet.
-    """
+    '''
     def get(self, request):
         wild_pokemon = Pokemon.objects.filter(captured=False)
 
@@ -68,7 +73,15 @@ class AddPokemonView(APIView):
         return Response({"Discovered wild pokemon": serializer.data})
 
     def post(self, request):
-        pass
+        print(request.body)
+        data = json.loads(request.body)
+        pokemon_name = data['name']
+        print(pokemon_name)
+        pokemon = get_object_or_404(Pokemon, name=pokemon_name)
+        # pokemon.user = request.user
+        captured_pokemon = pokemon.create_captured_pokemon()
+        return HttpResponse("/pokemon/allpokemon/")
+
 
 '''
 This view is for listing all the pokemon that a user does not own.

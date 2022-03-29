@@ -30,4 +30,6 @@ urlpatterns = [
     path('mypokemon/', UserPokemonView.as_view()),
 
     path('addpokemon/', AddPokemonView.as_view()),
+
+    #path('', FV.as_view()),
 ]
