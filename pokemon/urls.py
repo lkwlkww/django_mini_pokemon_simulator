@@ -16,7 +16,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path,include
 
-from .views import AllPokemonView,UserPokemonView,AddPokemonView,ReleasePokemonView,UnownedPokemonView
+from .views import AllPokemonView,UserPokemonView,AddPokemonView,ReleasePokemonView,UnownedPokemonView,CatchPokemonView
 
 app_name = 'pokemon'
 
@@ -29,4 +29,5 @@ urlpatterns = [
     path('mypokemon/', UserPokemonView.as_view()),
     path('addpokemon/', AddPokemonView.as_view()),
     path('releasepokemon/', ReleasePokemonView.as_view()),
+    path('catchpokemon/', CatchPokemonView.as_view()),
 ]

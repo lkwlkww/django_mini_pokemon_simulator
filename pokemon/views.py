@@ -15,13 +15,13 @@ from django.views.generic import ListView
 from django.views.generic.edit import FormView
 
 from .models import Pokemon
-from .serializers import PokemonSerializer, CapturedPokemonSerializer, WildPokemonSerializer
+from .serializers import PokemonSerializer, CapturedPokemonSerializer
 
 import random
 import json
 
 '''
-This view lists all the existing Pokemon.
+This view outputs all the existing Pokemon through a GET request.
 '''
 class AllPokemonView(APIView):
     permission_classes = (AllowAny,)
@@ -45,7 +45,7 @@ class AllPokemonView(APIView):
 
 
 '''
-This view lists all the captured pokemon of a user.
+This view outputs all the captured pokemon of a user through a GET request.
 '''
 class UserPokemonView(APIView):
     # permission_classes = (AllowAny,)
@@ -57,24 +57,11 @@ class UserPokemonView(APIView):
 
 '''
 This view is for adding a captured pokemon to a user's
-repertoire of captured pokemon.
+repertoire of captured pokemon through a POST request. The input to the POST request
+should contain the pokemon's name.
 '''
 class AddPokemonView(APIView):
     # permission_classes = (AllowAny,)
-    '''
-    Get a randomly generated pokemon that has not been captured yet.
-    '''
-    def get(self, request):
-        wild_pokemon = Pokemon.objects.filter(captured=False)
-
-        # get a random pokemon
-        discovered_pokemon = random.choice(wild_pokemon)
-
-        # set the discovered pokemon's level to a randomly generated int between 1 and 100
-        discovered_pokemon.level = random.randint(1, 100)
-
-        serializer = WildPokemonSerializer(discovered_pokemon)
-        return Response({"Discovered wild pokemon": serializer.data})
 
     def post(self, request):
         data = json.loads(request.body)
@@ -87,7 +74,8 @@ class AddPokemonView(APIView):
         return HttpResponseRedirect('/pokemon/mypokemon')
 
 '''
-This view is for releasing a user's captured pokemon, through a POST request.
+This view is for releasing a user's captured pokemon, through a POST request. The input to the
+POST request should contain the pokemon's name.
 '''
 class ReleasePokemonView(APIView):
     def post(self, request):
@@ -100,9 +88,8 @@ class ReleasePokemonView(APIView):
         pokemon.save()
         return HttpResponseRedirect('/pokemon/mypokemon')
 
-
 '''
-This view is for listing all the pokemon that a user does not own.
+This view is for listing all the pokemon that a user does not own, through a GET request.
 '''
 class UnownedPokemonView(APIView):
     def get(self, request):
@@ -110,6 +97,19 @@ class UnownedPokemonView(APIView):
 
         serializer = PokemonSerializer(unowned_pokemon, many=True)
         return Response({"Unowned pokemon": serializer.data})
+
+'''
+This view outputs a randomly generated pokemon for capture through a GET request.
+'''
+class CatchPokemonView(APIView):
+    def get(self, request):
+        wild_pokemon = Pokemon.objects.filter(captured=False)
+
+        # get a random pokemon
+        discovered_pokemon = random.choice(wild_pokemon)
+
+        serializer = PokemonSerializer(discovered_pokemon)
+        return Response({"Discovered wild pokemon": serializer.data})
 
 """
 '''
