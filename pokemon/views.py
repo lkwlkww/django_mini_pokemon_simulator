@@ -86,6 +86,20 @@ class AddPokemonView(APIView):
         pokemon.save()
         return HttpResponseRedirect('/pokemon/mypokemon')
 
+'''
+This view is for releasing a user's captured pokemon, through a POST request.
+'''
+class ReleasePokemonView(APIView):
+    def post(self, request):
+        data = json.loads(request.body)
+        pokemon_name = data['name']
+        pokemon = get_object_or_404(Pokemon, name=pokemon_name)
+        pokemon.user = None
+        pokemon.captured = False
+        pokemon.level = None
+        pokemon.save()
+        return HttpResponseRedirect('/pokemon/mypokemon')
+
 
 '''
 This view is for listing all the pokemon that a user does not own.
