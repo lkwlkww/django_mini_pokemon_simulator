@@ -1,0 +1,18 @@
+
+{% block content %}
+<h1>Try to catch this pokemon!</h1>
+<h3>{{pokemon.name}}</h3>
+<p>
+    HP: {{pokemon.hp}}<br>
+    Attack: {{pokemon.attack}}<br>
+    Defense: {{pokemon.defense}}<br>
+    Type: {{pokemon.type}}
+</p>
+<form action="" method="post">
+    {% csrf_token %}
+    <table>
+        {{ form.as_table }}
+    </table>
+    <input type="submit" value="Submit guess">
+</form>
+{% endblock %}
