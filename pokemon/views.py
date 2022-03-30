@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.urls import reverse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 
 from django.db import models
 
@@ -122,6 +122,7 @@ reset_game -    This function is called to reset the state of the game by genera
 """
 class CatchPokemonView(FormView):
     #permission_classes = (AllowAny,)
+
     template_name = 'catch.html'
     success_url = 'pokemon/mypokemon/'
 
@@ -130,28 +131,39 @@ class CatchPokemonView(FormView):
     correct_num = random.randint(0, 10) # The correct answer for an instance of the "guess the number" game.
 
     def get(self ,request):
-        print('get called')
         form = CatchPokemonForm()
 
         context = {
             'form': form,
             'pokemon': self.wild_pokemon,
         }
-
-        print('token', request.GET.get('csrfmiddlewaretoken'))
-        print(request.GET)
+        try:
+            auth_token = request.META['HTTP_AUTHORIZATION']
+        except KeyError:
+            pass
         return render(request, 'catch.html', context)
 
     def post(self, request):
-        print('post', request.POST)
+        '''
+        try:
+            auth_token = request.META['HTTP_AUTHORIZATION']
+        except KeyError:
+            pass
+        '''
         print('POST called')
         print('view count', CatchPokemonView.count)
         CatchPokemonView.count += 1
         form = CatchPokemonForm(request.POST, count=CatchPokemonView.count, correct_num=self.correct_num)
+        token = form.data['Authorization_token']
+        auth_header = 'Authorization: JWT ' + token
+        print(auth_header)
 
         if form.is_valid(): # If guess is wrong, then ValidationError is raised which makes the form not valid.
             CatchPokemonView.count = 0
             self.catch(request.user)
+            response = redirect(reverse('addpokemon'))
+            response['HTTP_AUTHORIZATION'] = auth_header
+            return response
             return HttpResponseRedirect(reverse('addpokemon'))
         else:
             if self.count == 3:
