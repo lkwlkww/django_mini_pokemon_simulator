@@ -1,21 +1,14 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework.reverse import reverse
 
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from django.urls import reverse
 from django.shortcuts import get_object_or_404, render, redirect
-
 from django.db import models
-
 from django.http import HttpResponseRedirect
-
 from django.views.generic.edit import FormView
-from django.views.decorators.csrf import csrf_exempt
 
-from pokemon.forms import CatchPokemonForm
-
+from .forms import AddPokemonForm, ReleasePokemonForm
 from .models import Pokemon
 from .serializers import PokemonSerializer, CapturedPokemonSerializer
 
@@ -26,6 +19,12 @@ import json
 '''
 This view outputs all the existing Pokemon through a GET request.
 '''
+"""
+This view displays all the pokemon that exist.
+Methods:
+get -   A GET request posted to this webpage causes a list of all existing
+        pokemon to be displayed.
+"""
 class AllPokemonView(APIView):
     permission_classes = (AllowAny,)
 
@@ -34,76 +33,60 @@ class AllPokemonView(APIView):
         serializer = PokemonSerializer(pokemon, many=True)
         return Response({'All existing Pokemon': serializer.data})
 
-    """
-    def put(self, request, pk):
-        saved_pokemon = get_object_or_404(Pokemon.objects.all(), pk=pk)
-        data = request.data
-        serializer = PokemonSerializer(instance=saved_pokemon, data=data, partial=True)
-
-        if serializer.is_valid(raise_exception=True):
-            pokemon_saved = serializer.save()
-        return Response({'success': "Pokemon '{}' updated successfully".format(pokemon_saved.name)})
-    """
-
-
-
-'''
-This view outputs all the captured pokemon of a user through a GET request.
-'''
+"""
+This view displays a user's captured pokemon.
+Methods:
+get -   A GET request posted to this webpages causes a list of the user's captured
+        pokemon to be displayed.
+"""
 class UserPokemonView(APIView):
-    # permission_classes = (AllowAny,)
     def get(self, request):
-        # pokemon = CapturedPokemon.objects.filter(user=request.user)
         pokemon = Pokemon.objects.filter(captured=True).filter(user=request.user)
         serializer = CapturedPokemonSerializer(pokemon, many=True)
         return Response({'Captured Pokemon': serializer.data})
 
-'''
-This view is for adding a captured pokemon to a user's
-repertoire of captured pokemon through a POST request. The input to the POST request
-should contain the pokemon's name.
-'''
-class AddPokemonView(APIView):
-    #permission_classes = (AllowAny,)
+"""
+This view is for releasing a user's captured pokemon.
+Methods:
+get -   A GET request posted to this webpage causes this method to be called, which returns a render of the
+        release.html file. The render shows a UI for submitting the case-sensitive name of the pokemon to be released.
+post -  A POST request posted to the webpage causes this method to be called. If the request contains a name of a
+        pokemon from the user's captured pokemon, then the attributes of the pokemon is changed to reflect that
+        of a wild (uncaught) pokemon. Else, the release.html page is re-rendered and a statement telling the user
+        that a captured pokemon of that name does not exist.
+"""
+class ReleasePokemonView(FormView):
+    def get(self, request):
+        form = ReleasePokemonForm()
+        context = {
+            'form': form,
+        }
+        return render(request, 'release.html', context)
 
     def post(self, request):
-        data = json.loads(request.body)
-        pokemon_name = data['name']
-        pokemon = get_object_or_404(Pokemon, name=pokemon_name)
-        pokemon.user = request.user
-        pokemon.captured = True
-        pokemon.level = random.randint(1,100)
-        pokemon.save()
-        return HttpResponseRedirect('/pokemon/mypokemon')
+        form = ReleasePokemonForm(request.POST)
+        if form.is_valid():
+            pokemon_name = form.cleaned_data['pokemon_name']
+            pokemon = Pokemon.objects.get(name=pokemon_name)
+            pokemon.user = None
+            pokemon.captured = False
+            pokemon.level = None
+            pokemon.save()
+            return redirect(reverse('mypokemon'))
+        else:
+            return render(request, 'release.html', {'form': form})
 
-'''
-This view is for releasing a user's captured pokemon, through a POST request. The input to the
-POST request should contain the pokemon's name.
-'''
-class ReleasePokemonView(APIView):
-    def post(self, request):
-        data = json.loads(request.body)
-        pokemon_name = data['name']
-        pokemon = get_object_or_404(Pokemon, name=pokemon_name)
-        pokemon.user = None
-        pokemon.captured = False
-        pokemon.level = None
-        pokemon.save()
-        return HttpResponseRedirect('/pokemon/mypokemon')
-
-'''
-This view is for listing all the pokemon that a user does not own, through a GET request.
-'''
+"""
+This view is for displaying all the pokemon that a user does not own.
+Methods:
+get -   A GET request posted to the webpage causes this method to be called, which displays
+        a list of pokemon that the user does not own.
+"""
 class UnownedPokemonView(APIView):
     def get(self, request):
         unowned_pokemon = Pokemon.objects.filter(~models.Q(user = request.user))
-
         serializer = PokemonSerializer(unowned_pokemon, many=True)
         return Response({"Unowned pokemon": serializer.data})
-class LoginView(FormView):
-    permission_classes = (AllowAny,) # This is set to allow anyone to access the page, so they can login.
-    template_name = 'login.html'
-    pass
 
 """
 This view is for handling the catching of a pokemon.
@@ -120,66 +103,39 @@ catch - Function to update the attributes of a caught pokemon to reflect its cap
 reset_game -    This function is called to reset the state of the game by generating new values for its random 
                 attributes (wild_pokemon and correct_num), and resetting the count of guesses to 0.
 """
-class CatchPokemonView(FormView):
-    #permission_classes = (AllowAny,)
-
-    template_name = 'catch.html'
-    success_url = 'pokemon/mypokemon/'
-
+class AddPokemonView(FormView):
     wild_pokemon = random.choice(Pokemon.objects.filter(captured=False)) # Initialise a wild_pokemon that will be interacted with in the GET and POST methods.
     count = 0 # For tracking the number of guesses within an instance of the "guess the number" game.
     correct_num = random.randint(0, 10) # The correct answer for an instance of the "guess the number" game.
 
     def get(self ,request):
-        form = CatchPokemonForm()
-
+        form = AddPokemonForm()
         context = {
             'form': form,
             'pokemon': self.wild_pokemon,
         }
-        try:
-            auth_token = request.META['HTTP_AUTHORIZATION']
-        except KeyError:
-            pass
         return render(request, 'catch.html', context)
 
     def post(self, request):
-        '''
-        try:
-            auth_token = request.META['HTTP_AUTHORIZATION']
-        except KeyError:
-            pass
-        '''
-        print('POST called')
-        print('view count', CatchPokemonView.count)
-        CatchPokemonView.count += 1
-        form = CatchPokemonForm(request.POST, count=CatchPokemonView.count, correct_num=self.correct_num)
-        token = form.data['Authorization_token']
-        auth_header = 'Authorization: JWT ' + token
-        print(auth_header)
+        AddPokemonView.count += 1
+        form = AddPokemonForm(request.POST, count=AddPokemonView.count, correct_num=self.correct_num)
 
         if form.is_valid(): # If guess is wrong, then ValidationError is raised which makes the form not valid.
-            CatchPokemonView.count = 0
+            AddPokemonView.reset_game()
             self.catch(request.user)
-            response = redirect(reverse('addpokemon'))
-            response['HTTP_AUTHORIZATION'] = auth_header
-            return response
-            return HttpResponseRedirect(reverse('addpokemon'))
+            return redirect(reverse('mypokemon'))
         else:
-            if self.count == 3:
-                #TODO: change to something that shows catch failed
-                reset_game()
-                return render(request, 'catch.html', {'form': form, 'pokemon': self.wild_pokemon})
-            else:
-                return render(request, 'catch.html', {'form': form, 'pokemon': self.wild_pokemon})
+            if self.count == 3: # Reset the game if 3 wrong tries have been made.
+                AddPokemonView.reset_game()
+            return render(request, 'catch.html', {'form': form, 'pokemon': self.wild_pokemon})
 
     def catch(self, user):
-        #self.wild_pokemon.user = user 
+        self.wild_pokemon.user = user 
         self.wild_pokemon.captured = True
         self.wild_pokemon.level = random.randint(1,100)
         self.wild_pokemon.save()
 
     def reset_game():
-        CatchPokemonView.count = 0
-        CatchPokemonView.correct_num = random.randint(0, 10)
-        CatchPokemnoView.wild_pokemon = random.choice(Pokemon.objects.filter(captured=False))
+        AddPokemonView.count = 0
+        AddPokemonView.correct_num = random.randint(0, 10)
+        AddPokemonView.wild_pokemon = random.choice(Pokemon.objects.filter(captured=False))
