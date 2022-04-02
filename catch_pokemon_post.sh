@@ -1,1 +1,0 @@
-curl -X POST http://127.0.0.1:8000/pokemon/catchpokemon/ -d 'guess=1' -H 'Authorization: JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ4ODQzNDA1LCJqdGkiOiIzZjg5ZTQyNDFlYTk0N2I5YmQyMGQyNTM1NzU4YzQxNyIsInVzZXJfaWQiOjF9.MlnQ3OrbN8rmsaQrPZ2ckKyfdOcRsYj4WayiF5c97mo' > a.html && open a.html
